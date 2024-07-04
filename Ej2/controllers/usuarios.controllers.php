@@ -27,18 +27,38 @@ switch ($metodo) {
         }
         break;
     case "POST":
-        $datos = json_decode(file_get_contents('php://input'));
-        if (!empty($datos->correo) || !empty($datos->password) || !empty($datos->estado)) {
-            $insetar = array();
-            $insetar = $usuario->insertar($datos->Nombre, $datos->correo, $datos->password, $datos->estado);
-            if ($insetar) {
-                echo json_encode(array("message" => "Se inserto correctamente"));
+        if (isset($_GET["op"]) == "login") {
+
+            if (empty($_POST["correo"]) || empty($_POST["contrasenia"])) {
+                header('Location: ../index.php?op=2');
+                exit();
+            }
+            $correo = $_POST["correo"];
+            $contrasena = $_POST["contrasenia"];
+            $login = $usuario->login($correo, $contrasena);
+            $res = mysqli_fetch_assoc($login);
+            if ($res) {
+                header('Location: ../views/dashboard.php');
+                exit();
             } else {
-                echo json_encode(array("message" => "Error, no se inserto"));
+                header('Location: ../index.php?op=1');
+                exit();
             }
         } else {
-            echo json_encode(array("message" => "Error, faltan datos"));
+            $datos = json_decode(file_get_contents('php://input'));
+            if (!empty($datos->correo) || !empty($datos->password) || !empty($datos->estado)) {
+                $insetar = array();
+                $insetar = $usuario->insertar($datos->Nombre, $datos->correo, $datos->password, $datos->estado);
+                if ($insetar) {
+                    echo json_encode(array("message" => "Se inserto correctamente"));
+                } else {
+                    echo json_encode(array("message" => "Error, no se inserto"));
+                }
+            } else {
+                echo json_encode(array("message" => "Error, faltan datos"));
+            }
         }
+
         break;
     case "PUT":
         $datos = json_decode(file_get_contents('php://input'));
